@@ -13,7 +13,7 @@
 
 > *A hands-on cybersecurity and system administration project — built from scratch on a real machine.*
 
-<br/>
+<br>
 
 [![OS](https://img.shields.io/badge/Athena%20OS-Arch%20Based-1793d1?style=for-the-badge&logo=archlinux&logoColor=white)](https://athenaos.org)
 [![Firewall](https://img.shields.io/badge/Firewall-Firewalld-e94560?style=for-the-badge&logo=linux&logoColor=white)]()
