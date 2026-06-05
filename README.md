@@ -61,7 +61,7 @@ This project reflects practical skills directly relevant to **Log Analysis**, **
 
 ```
                         ┌──────────────────────────────────┐
-                        │        🖥️  Athena OS Server        │
+                        │        🖥️  Athena OS Server      │
                         │                                  │
           Browser ────► │  🌐 Cockpit Web UI  (Port 9090)  │
                         │                                  │
@@ -70,7 +70,7 @@ This project reflects practical skills directly relevant to **Log Analysis**, **
                         │  🐳 Docker Services              │
                         │     └─ Containerized apps        │
                         │                                  │
-                        │  ⚙️  Systemd                      │
+                        │  ⚙️  Systemd                     │
                         │     └─ Service management        │
                         │                                  │
                         │  📋 Log Monitoring               │
