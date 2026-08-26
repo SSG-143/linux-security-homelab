@@ -1,5 +1,5 @@
 <div align="center">
-  
+
 <pre>
 ███████╗███████╗ ██████╗    ██╗      █████╗ ██████╗
  ██╔════╝██╔════╝██╔════╝    ██║     ██╔══██╗██╔══██╗
@@ -11,7 +11,7 @@
 
 # 🛡️ Linux Security Homelab
 
-> *A hands-on cybersecurity and system administration project — built from scratch on a real machine.*
+> *A self-hosted Linux server, configured and hardened from the ground up — not a tutorial clone, but a real box I run, break, monitor, and fix.*
 
 <br>
 
@@ -29,29 +29,23 @@
 
 ## 📖 Overview
 
-**Linux Security Homelab** is a personal cybersecurity and system administration project built by repurposing an old Linux desktop into a fully self-managed, security-focused server environment.
+<div align="center">
 
-The machine originally ran **Athena OS** (an Arch-based cybersecurity-oriented distribution) with a full **Hyprland** desktop environment. It was later transitioned into a headless server — with services configured, users managed, firewall rules written, and logs actively monitored.
+|  |  |
+|---|---|
+| **OS** | Athena OS (Arch-based), Linux 7.0.12 |
+| **Hardware** | Acer Veriton M200-H110, Intel i3-6100T, 12 GB RAM |
+| **Access** | SSH (key-based), Cockpit web console |
+| **Core services** | Firewalld, Docker, Cockpit, SSH, centralized logging |
+| **Hosted apps** | Pi-hole, Plex, custom project containers |
 
-> Unlike just "learning Kali Linux tools," this project involved actually **owning and securing a real system** — configuring it from the ground up, making deliberate security decisions, and understanding why each setting matters.
+</div>
 
-This project reflects practical skills directly relevant to **Log Analysis**, **Linux System Administrator**, and **Blue Team** roles.
-
----
-
-## 🛠️ Technologies Used
+The box is administered two ways: **SSH** from the terminal for day-to-day work, and **Cockpit** (web console, port 9090) for monitoring, log review, and network configuration at a glance.
 
 <div align="center">
 
-| Category | Technology | Purpose |
-|----------|-----------|---------|
-| 🐧 **Operating System** | Athena OS (Arch-based Linux) | Security-focused distro, rolling release |
-| 🌐 **Server Admin UI** | Cockpit | Browser-based server management & log viewing |
-| 🔥 **Firewall** | Firewalld | Dynamic firewall daemon, zone-based rules |
-| 🐳 **Containers** | Docker | Isolated service deployment |
-| ⚙️ **Init System** | Systemd | Service lifecycle and boot management |
-| 🔑 **Remote Access** | SSH | Encrypted terminal access |
-| 📋 **Log Tools** | Journalctl / /var/log | System and authentication log analysis |
+![Cockpit system overview](screenshots/04-cockpit-overview.jpg)
 
 </div>
 
@@ -65,23 +59,20 @@ This project reflects practical skills directly relevant to **Log Analysis**, **
                         │                                  │
           Browser ────► │  🌐 Cockpit Web UI  (Port 9090)  │
                         │                                  │
-          SSH ────────► │  🔑 SSH Daemon      (Port 22)    │
+          SSH ────────► │  🔑 SSH Daemon      (key-only)   │
                         │                                  │
-                        │  🐳 Docker Services              │
-                        │     └─ Containerized apps        │
+                        │  🐳 Docker (bridge: docker0)      │
+                        │     ├─ Pi-hole                   │
+                        │     ├─ Plex                      │
+                        │     └─ project containers        │
                         │                                  │
-                        │  ⚙️  Systemd                     │
-                        │     └─ Service management        │
-                        │                                  │
-                        │  📋 Log Monitoring               │
-                        │     ├─ journalctl                │
-                        │     └─ /var/log/                 │
+                        │  📋 Centralized Logging          │
+                        │     ├─ journalctl -f             │
+                        │     └─ Cockpit log viewer        │
                         │                                  │
                         │  ════════════════════════════    │
-                        │  🔥 FIREWALLD  (Active Gate)     │
-                        │     ✅ SSH allowed               │
-                        │     ✅ DHCPv6 allowed            │
-                        │     ❌ Everything else blocked   │
+                        │  🔥 FIREWALLD  (3 active zones)  │
+                        │     └─ granular, per-interface   │
                         └──────────────────────────────────┘
 ```
 
@@ -89,68 +80,69 @@ This project reflects practical skills directly relevant to **Log Analysis**, **
 
 ## 🎯 Key Areas of Work
 
-### 🔥 1. Firewall Management
+### 🔥 1. Firewall
 
-Configured **Firewalld** — a dynamic, zone-based firewall daemon — to control all inbound and outbound network traffic on the server.
+Firewalld runs with **3 active zones**, giving granular control over what's reachable and from where — rather than one flat set of rules for every interface.
 
-- Applied **default-deny** policy: all ports are blocked unless explicitly allowed
-- Managed **zones** to define trust levels for different network interfaces
-- Allowed only the minimum necessary services: `SSH` and `DHCPv6`
-- Understood how Firewalld interacts with Docker networking and iptables chains underneath
+<div align="center">
 
-> 🔍 *This reflects how firewalls are managed in real Linux server environments — not just toggling UFW on/off, but understanding zone-based policy.*
+![Networking and firewall status](screenshots/06-cockpit-networking.jpg)
 
----
-
-### 👥 2. User & Permission Management
-
-Set up and managed **users, groups, and file permissions** following the principle of least privilege.
-
-- Created system users with restricted shell access and limited sudo rights
-- Configured **file and directory permissions** (`chmod`, `chown`) to prevent unauthorized access
-- Understood the difference between regular users, service accounts, and root
-- Managed which users can perform administrative actions and under what conditions
-
-> 🔍 *Improper user permissions are one of the most common misconfigurations found during security audits. Doing this manually on a real system builds real intuition.*
+</div>
 
 ---
 
-### 📊 3. Log Monitoring & Analysis
+### 🔐 2. Access Control
 
-Actively monitored the server's **system and authentication logs** to identify suspicious activity and understand what normal vs. abnormal behaviour looks like.
-
-- Used `journalctl` to query systemd logs by service, time range, and priority
-- Reviewed `/var/log/auth.log` and related files for failed SSH logins and privilege escalations
-- Used **Cockpit's** built-in log viewer as a real-time browser-based monitoring dashboard
-- Learned to distinguish noise (routine events) from signals (potential incidents)
-
-> 🔍 *Log analysis is the core daily skill of a SOC analyst. Reading real logs from a real system — not a lab simulation — builds the pattern recognition that matters.*
+- **SSH access is key-based** — password auth is disabled for remote login
+- **User permissions are scoped per-service** — containerized apps (Pi-hole, Plex) run under their own accounts, not root, limiting blast radius if any one service is compromised
+- **Failed login attempts are visible directly on the Cockpit dashboard**, so unusual access attempts don't go unnoticed
 
 ---
 
-### 🐳 4. Docker & Container Management
+### 📊 3. Logging & Monitoring
 
-Deployed and managed services using **Docker** containers on the server.
+All system logs are centralized and filterable through Cockpit — by priority, service, or time range — instead of digging through raw log files over SSH for every check.
 
-- Pulled, configured, and ran containerized applications
-- Managed container networking and understood how Docker interacts with the host firewall
-- Used **Systemd** to manage Docker as a service and ensure it starts on boot
-- Administered running containers through both CLI and Cockpit
+<div align="center">
 
-> 🔍 *Containers are everywhere in modern infrastructure. Understanding how they run, how they expose ports, and how they interact with host-level security controls is essential.*
+![Centralized log monitoring](screenshots/05-cockpit-logs.jpg)
+
+</div>
+
+Live logs are also tailed directly via `journalctl -f` to catch misconfigurations early (e.g. duplicate D-Bus service names, deprecated policies) rather than letting warnings go unread.
+
+<div align="center">
+
+![System boot log](screenshots/03-boot-log.jpg)
+
+</div>
 
 ---
 
-### 🌐 5. Server Administration via Cockpit
+### 🐳 4. Isolation
 
-Used **Cockpit** — a web-based Linux server management tool — as the primary interface for day-to-day server management.
+Docker handles containerized services on their own bridge network (`docker0`, `172.17.0.1/16`), separating application traffic from the host's LAN-facing interface.
 
-- Monitored CPU, memory, disk, and network usage in real time
-- Managed services (start/stop/enable/disable) through the UI
-- Reviewed system logs without needing to be at the terminal
-- Managed storage and system configuration from a browser
+---
 
-> 🔍 *Cockpit is used in real enterprise Linux environments. Knowing how to navigate and administer a server through it is a practical, job-relevant skill.*
+### 🗂️ 5. Server Layout
+
+Standard structure kept clean and predictable — home directory, a dedicated `Projects` folder for work in progress, and separate root-owned directories for long-running services (`pihole`, `plex`) to keep service data isolated from user data.
+
+<div align="center">
+
+![Server file structure](screenshots/02-file-structure.jpg)
+
+</div>
+
+Remote file access is available over FTP for quick transfers — though as Windows itself warns, FTP is unencrypted, so this is being migrated to **WebDAV/SFTP-only** access.
+
+<div align="center">
+
+![FTP access prompt](screenshots/01-ftp-login.jpg)
+
+</div>
 
 ---
 
@@ -160,44 +152,33 @@ Used **Cockpit** — a web-based Linux server management tool — as the primary
 ┌─────────────────────────────────────────────────────────┐
 │                  SECURITY PRINCIPLES                    │
 ├──────────────────────┬──────────────────────────────────┤
-│  Least Privilege     │  Users and services get only     │
-│                      │  the access they actually need   │
+│  Least Privilege     │  Services run under their own    │
+│                      │  accounts, never root             │
 ├──────────────────────┼──────────────────────────────────┤
-│  Default Deny        │  Firewall blocks everything      │
-│                      │  unless explicitly permitted     │
+│  Zone-Based Firewall │  3 firewalld zones instead of     │
+│                      │  one flat rule set                │
 ├──────────────────────┼──────────────────────────────────┤
-│  Visibility          │  Logs monitored to detect and    │
-│                      │  review suspicious activity      │
+│  Visibility          │  Centralized logs + live tailing  │
+│                      │  to catch issues early            │
 ├──────────────────────┼──────────────────────────────────┤
-│  Defense in Depth    │  Multiple layers: firewall +     │
-│                      │  permissions + monitoring        │
+│  Network Isolation   │  Docker bridge network keeps      │
+│                      │  app traffic off the LAN iface    │
+├──────────────────────┼──────────────────────────────────┤
+│  Encrypted Access    │  Key-based SSH; FTP being retired │
+│                      │  in favor of WebDAV/SFTP          │
 └──────────────────────┴──────────────────────────────────┘
 ```
 
 ---
 
-## 📂 Repository Structure
+## 📚 What This Project Is For
 
-```
-linux-security-homelab/
-│
-├── 📄 README.md                  ← Project overview (you are here)
-│
-├── 🔥 firewall/
-│   └── README.md                 ← Firewall rules & configuration walkthrough
-│
-├── 👥 users/
-│   └── README.md                 ← User management & permission setup
-│
-├── 📊 logs/
-│   └── README.md                 ← Log monitoring process & findings
-│
-├── 🐳 docker/
-│   └── README.md                 ← Docker setup & container management
-│
-└── 🌐 cockpit/
-    └── README.md                 ← Cockpit setup & administration notes
-```
+This lab exists to practice things that don't show up in tutorials:
+
+- Actually hardening a box, not just installing software on top of defaults
+- Reading logs and boot output critically instead of ignoring warnings
+- Structuring firewall zones and container isolation with intent
+- Documenting a real system the way it'd need to be documented on a real job
 
 ---
 
@@ -205,12 +186,12 @@ linux-security-homelab/
 
 ```
  🐧  Linux system administration on a real Arch-based machine
- 🔥  Firewall configuration and zone-based policy management
- 👥  User and group management with least-privilege principles
- 📊  System and authentication log monitoring and analysis
- 🐳  Docker container deployment and service management
- 🔑  SSH administration and remote server access
+ 🔥  Zone-based firewall configuration with Firewalld
+ 🔐  Key-based SSH access control and per-service permissions
+ 📊  Centralized log monitoring and live journalctl tailing
+ 🐳  Docker container isolation via dedicated bridge network
  🌐  Web-based server administration via Cockpit
+ 🗂️  Clean, predictable server/file layout
  🛡️  Security hardening and blue-team thinking
 ```
 
@@ -220,8 +201,7 @@ linux-security-homelab/
 
 ---
 
-*This project is part of an ongoing cybersecurity learning journey.*
-*Each folder in this repository documents a specific area of work with configurations, commands used, and findings.*
+*Part of my broader cybersecurity portfolio — see [profile README](https://github.com/SSG-143) for other projects.*
 
 [![Athena OS](https://img.shields.io/badge/Built%20on-Athena%20OS-1793d1?style=flat-square&logo=archlinux&logoColor=white)](https://athenaos.org)
 [![Blue Team](https://img.shields.io/badge/Focus-Blue%20Team%20%7C%20Hardening-blue?style=flat-square)]()
